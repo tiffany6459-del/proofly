@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f5f3ee">
+  <meta name="description" content="Proofly is a private, free writing assistant for cleaner spelling, grammar, and clarity.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <title>Proofly — write clearer</title>
+  <style>
+    :root {
+      --ink: #242b2d;
+      --ink-soft: #4f5a5b;
+      --muted: #859091;
+      --faint: #aeb7b5;
+      --paper: #f7f6f2;
+      --rail: #f0f1ed;
+      --surface: #fffefa;
+      --surface-2: #eef1ee;
+      --line: #e0e5e1;
+      --line-dark: #ccd5d1;
+      --teal: #2b8a86;
+      --teal-dark: #206c69;
+      --teal-soft: #dcefeb;
+      --coral: #c96f5d;
+      --coral-soft: #f4e1dc;
+      --yellow: #c38b2d;
+      --yellow-soft: #f8ecd1;
+      --purple: #8372a2;
+      --purple-soft: #ebe7f3;
+      --shadow: 0 18px 55px rgba(44,57,55,.08);
+      --radius-xl: 25px;
+      --radius-lg: 18px;
+      --radius-md: 12px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; background: var(--paper); color: var(--ink); font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
+    body.no-scroll { overflow: hidden; }
+    button, input, textarea, select { font: inherit; }
+    button, a { cursor: pointer; }
+    a { color: inherit; }
+    ::selection { background: #bfe2df; color: var(--ink); }
+    .app { min-height: 100vh; display: flex; }
+
+    /* side rail */
+    .sidebar { width: 236px; flex: 0 0 236px; min-height: 100vh; padding: 26px 15px 19px; background: var(--rail); border-right: 1px solid var(--line); display: flex; flex-direction: column; position: fixed; inset: 0 auto 0 0; z-index: 10; }
+    .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; padding: 0 11px; margin-bottom: 37px; }
+    .brand-mark { width: 31px; height: 31px; display: grid; place-items: center; border-radius: 11px 11px 11px 3px; background: var(--ink); color: #eef9f7; font-family: Georgia, serif; font-size: 17px; }
+    .brand-name { color: var(--ink); font-family: Georgia, serif; font-size: 20px; letter-spacing: -.06em; line-height: .9; }
+    .brand-name small { display: block; color: var(--faint); font-family: Inter, sans-serif; font-size: 8px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; margin-top: 6px; }
+    .profile { display: flex; align-items: center; gap: 10px; border: 1px solid var(--line); background: rgba(255,255,255,.5); border-radius: 13px; padding: 10px; margin: 0 2px 30px; }
+    .avatar { width: 29px; height: 29px; display: grid; place-items: center; flex: 0 0 auto; border-radius: 50%; background: #b9d9d4; color: #27635f; font-size: 9px; font-weight: 850; }
+    .profile strong { display: block; color: var(--ink); font-size: 11px; line-height: 1.2; }
+    .profile span { display: block; color: var(--muted); font-size: 9px; margin-top: 4px; }
+    .nav-label { color: var(--faint); font-size: 8px; font-weight: 850; letter-spacing: .17em; text-transform: uppercase; padding: 0 12px; margin-bottom: 9px; }
+    .nav-list { display: grid; gap: 4px; }
+    .nav-item { width: 100%; display: flex; align-items: center; gap: 11px; padding: 10px 12px; border: 0; border-radius: 10px; background: transparent; color: var(--muted); text-decoration: none; font-size: 11px; text-align: left; transition: .2s ease; }
+    .nav-item:hover, .nav-item.active { background: var(--surface); color: var(--ink); box-shadow: 0 4px 13px rgba(45,63,60,.04); }
+    .nav-item.active { font-weight: 750; }
+    .nav-icon { width: 16px; height: 16px; display: grid; place-items: center; color: var(--faint); font-size: 14px; }
+    .nav-item.active .nav-icon { color: var(--teal); }
+    .rail-bottom { margin-top: auto; border-top: 1px solid var(--line); padding: 16px 11px 0; }
+    .save-note { color: var(--muted); font-size: 9px; line-height: 1.55; }
+    .save-note strong { display: flex; align-items: center; gap: 6px; color: var(--ink-soft); font-size: 10px; margin-bottom: 4px; }
+    .save-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--teal); }
+
+    /* chrome */
+    main { width: calc(100% - 236px); margin-left: 236px; min-height: 100vh; }
+    .topbar { height: 71px; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 0 44px; border-bottom: 1px solid var(--line); background: rgba(247,246,242,.88); backdrop-filter: blur(13px); position: sticky; top: 0; z-index: 8; }
+    .crumbs { display: flex; align-items: center; gap: 9px; color: var(--faint); font-size: 10px; }
+    .crumbs strong { color: var(--ink-soft); }
+    .slash { color: var(--line-dark); }
+    .top-actions { display: flex; align-items: center; gap: 8px; }
+    .top-btn { min-height: 33px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 0 11px; border: 1px solid var(--line); border-radius: 9px; background: rgba(255,255,255,.55); color: var(--muted); font-size: 10px; font-weight: 750; }
+    .top-btn:hover { border-color: var(--line-dark); background: var(--surface); color: var(--ink); }
+    .top-avatar { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%; background: #b9d9d4; color: #27635f; font-size: 9px; font-weight: 850; margin-left: 3px; }
+    .page { max-width: 1370px; margin: 0 auto; padding: 43px 44px 68px; }
+
+    /* header */
+    .page-intro { display: flex; align-items: end; justify-content: space-between; gap: 24px; margin-bottom: 28px; }
+    .eyebrow { color: var(--teal-dark); font-size: 8px; font-weight: 850; letter-spacing: .18em; text-transform: uppercase; }
+    .page-intro h1 { max-width: 710px; color: #344041; font-family: Georgia, serif; font-size: clamp(40px, 5vw, 70px); font-weight: 400; line-height: .93; letter-spacing: -.075em; margin: 14px 0 13px; }
+    .page-intro p { max-width: 490px; color: var(--muted); font-size: 11px; line-height: 1.65; }
+    .intro-side { flex: 0 0 210px; border-left: 1px solid var(--line); padding: 4px 0 4px 20px; }
+    .intro-side small { display: block; color: var(--faint); font-size: 8px; font-weight: 850; letter-spacing: .13em; text-transform: uppercase; }
+    .intro-side strong { display: block; color: var(--ink-soft); font-family: Georgia, serif; font-size: 25px; font-weight: 400; letter-spacing: -.055em; margin-top: 8px; }
+    .intro-side span { display: block; color: var(--muted); font-size: 9px; margin-top: 5px; }
+    .local-badge { display: inline-flex; align-items: center; gap: 6px; border: 1px solid #cfe4df; border-radius: 20px; background: #e9f4f1; color: var(--teal-dark); padding: 6px 9px; font-size: 8px; font-weight: 750; margin-top: 18px; }
+    .local-badge i { width: 5px; height: 5px; border-radius: 50%; background: var(--teal); }
+
+    /* buttons and workspace */
+    .btn-primary, .btn-secondary, .btn-quiet { min-height: 35px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; border-radius: 8px; padding: 0 13px; font-size: 10px; font-weight: 750; transition: .2s ease; }
+    .btn-primary { border: 1px solid var(--teal); background: var(--teal); color: white; box-shadow: 0 7px 16px rgba(43,138,134,.16); }
+    .btn-primary:hover { border-color: var(--teal-dark); background: var(--teal-dark); transform: translateY(-1px); }
+    .btn-secondary { border: 1px solid var(--line-dark); background: rgba(255,255,255,.52); color: var(--ink-soft); }
+    .btn-secondary:hover { border-color: #aebbb7; background: var(--surface); }
+    .btn-quiet { padding: 0; border: 0; background: transparent; color: var(--muted); }
+    .btn-quiet:hover { color: var(--ink); }
+    .workspace { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(280px, .65fr); gap: 14px; align-items: start; }
+    .editor-card, .insight-card { border: 1px solid var(--line); border-radius: var(--radius-xl); background: rgba(255,255,255,.62); box-shadow: var(--shadow); }
+    .editor-card { overflow: hidden; }
+    .editor-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 15px 17px; border-bottom: 1px solid var(--line); background: rgba(255,255,255,.49); }
+    .toolbar-left, .toolbar-right { display: flex; align-items: center; gap: 7px; }
+    .doc-title { max-width: 150px; overflow: hidden; color: var(--ink-soft); font-size: 11px; font-weight: 750; text-overflow: ellipsis; white-space: nowrap; }
+    .doc-title::before { content: "✦"; color: var(--teal); margin-right: 6px; }
+    .tool-btn { min-height: 28px; display: inline-flex; align-items: center; gap: 6px; padding: 0 8px; border: 1px solid transparent; border-radius: 7px; background: transparent; color: var(--muted); font-size: 9px; }
+    .tool-btn:hover { border-color: var(--line); background: var(--surface); color: var(--ink); }
+    .tone-select { height: 29px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); color: var(--muted); outline: none; padding: 0 7px; font-size: 9px; }
+    .tone-select:focus { border-color: var(--teal); }
+    .writing-area { min-height: 410px; padding: 23px 25px 20px; background: rgba(255,254,250,.64); }
+    #writing-input { width: 100%; min-height: 350px; resize: vertical; border: 0; outline: 0; background: transparent; color: #344041; font-family: Georgia, "Times New Roman", serif; font-size: 22px; line-height: 1.53; letter-spacing: -.018em; }
+    #writing-input::placeholder { color: #bac0bc; }
+    .writing-meta { display: flex; align-items: center; justify-content: space-between; padding-top: 13px; border-top: 1px solid var(--line); color: var(--faint); font-size: 9px; }
+    .writing-meta span:first-child { display: flex; align-items: center; gap: 6px; }
+    .privacy-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--teal); }
+    .editor-actions { display: flex; flex-wrap: wrap; gap: 8px; padding: 14px 17px 17px; border-top: 1px solid var(--line); background: #f1f4f0; }
+    .editor-actions .btn-primary { margin-left: auto; }
+
+    /* insights */
+    .insight-card { min-height: 100%; padding: 20px 19px 17px; }
+    .insight-header { display: flex; align-items: start; justify-content: space-between; gap: 10px; margin-bottom: 17px; }
+    .insight-header h2 { color: #3b4545; font-family: Georgia, serif; font-size: 24px; font-weight: 400; letter-spacing: -.055em; }
+    .score { width: 42px; height: 42px; display: grid; place-items: center; border: 5px solid var(--teal-soft); border-right-color: var(--teal); border-radius: 50%; color: var(--teal-dark); font-family: Georgia, serif; font-size: 13px; }
+    .issue-summary { padding: 11px 12px; border-radius: 10px; background: var(--surface-2); color: var(--muted); font-size: 9px; line-height: 1.5; margin-bottom: 14px; }
+    .issue-summary strong { color: var(--ink-soft); }
+    .issues { display: grid; gap: 7px; max-height: 350px; overflow: auto; }
+    .empty-issues { display: grid; place-items: center; min-height: 185px; padding: 18px; border: 1px dashed var(--line-dark); border-radius: 11px; color: var(--faint); font-size: 10px; line-height: 1.55; text-align: center; }
+    .empty-issues strong { display: block; color: var(--ink-soft); font-size: 12px; margin-bottom: 6px; }
+    .issue { padding: 10px 10px 9px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+    .issue-top { display: flex; align-items: center; justify-content: space-between; gap: 9px; }
+    .issue-kind { padding: 4px 6px; border-radius: 5px; font-size: 7px; font-weight: 850; letter-spacing: .11em; text-transform: uppercase; }
+    .issue.spelling .issue-kind { background: var(--coral-soft); color: var(--coral); }
+    .issue.grammar .issue-kind { background: var(--yellow-soft); color: var(--yellow); }
+    .issue.style .issue-kind { background: var(--purple-soft); color: var(--purple); }
+    .issue-fix { border: 0; background: transparent; color: var(--teal-dark); font-size: 9px; font-weight: 800; }
+    .issue-fix:hover { text-decoration: underline; text-underline-offset: 3px; }
+    .issue-text { color: var(--ink-soft); font-size: 10px; line-height: 1.45; margin-top: 8px; }
+    .issue-text del { color: var(--coral); text-decoration-color: rgba(201,111,93,.5); }
+    .issue-text ins { color: var(--teal-dark); text-decoration: none; font-weight: 750; }
+    .quick-card { margin-top: 12px; padding: 14px; border-radius: 13px; background: #e5eee8; border: 1px solid #d5e5dc; }
+    .quick-card strong { display: block; color: #476958; font-size: 10px; }
+    .quick-card p { color: #698270; font-size: 9px; line-height: 1.5; margin-top: 5px; }
+    .quick-card button { margin-top: 10px; border: 0; color: #4f745c; background: transparent; padding: 0; font-size: 9px; font-weight: 800; }
+
+    /* corrected preview and lower info */
+    .corrected-card { margin-top: 14px; padding: 19px 21px; border: 1px solid var(--line); border-radius: var(--radius-lg); background: #e6ede9; }
+    .corrected-head { display: flex; align-items: center; justify-content: space-between; gap: 15px; }
+    .corrected-head h2 { color: #426258; font-family: Georgia, serif; font-size: 22px; font-weight: 400; letter-spacing: -.04em; }
+    .corrected-label { color: #6b887b; font-size: 8px; font-weight: 850; letter-spacing: .15em; text-transform: uppercase; }
+    #corrected-text { color: #4b665b; font-family: Georgia, serif; font-size: 14px; line-height: 1.55; white-space: pre-wrap; margin-top: 12px; }
+    .how-it-works { display: grid; grid-template-columns: repeat(3,1fr); gap: 11px; margin-top: 36px; }
+    .how-card { min-height: 125px; padding: 17px; border-radius: 15px; border: 1px solid var(--line); background: rgba(255,255,255,.4); }
+    .how-card span { color: var(--teal); font-family: Georgia, serif; font-size: 17px; }
+    .how-card strong { display: block; color: var(--ink-soft); font-size: 10px; margin-top: 15px; }
+    .how-card p { color: var(--muted); font-size: 9px; line-height: 1.5; margin-top: 5px; }
+    .footer { display: flex; justify-content: space-between; gap: 15px; padding: 32px 2px 0; color: var(--faint); font-size: 9px; }
+
+    /* install/info modal */
+    .modal-backdrop { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; padding: 18px; background: rgba(33,34,29,.46); backdrop-filter: blur(7px); }
+    .modal-backdrop[hidden] { display: none; }
+    .modal { width: min(100%, 470px); padding: 24px; border-radius: 20px; background: var(--paper); box-shadow: 0 28px 80px rgba(34,32,26,.24); animation: modalIn .22s ease both; }
+    @keyframes modalIn { from { opacity: 0; transform: translateY(10px) scale(.98); } to { opacity: 1; transform: none; } }
+    .modal-head { display: flex; align-items: start; justify-content: space-between; gap: 14px; }
+    .modal-head h2 { color: #3c4544; font-family: Georgia, serif; font-size: 27px; font-weight: 400; letter-spacing: -.06em; }
+    .modal-head p { color: var(--muted); font-size: 10px; line-height: 1.5; margin-top: 6px; }
+    .modal-close { width: 29px; height: 29px; display: grid; place-items: center; border: 0; border-radius: 50%; background: var(--surface-2); color: var(--muted); font-size: 18px; }
+    .modal-close:hover { background: var(--line); color: var(--ink); }
+    .modal-body { padding-top: 20px; }
+    .modal-list { display: grid; gap: 9px; margin-top: 16px; }
+    .modal-list div { display: flex; gap: 9px; align-items: start; color: var(--ink-soft); font-size: 10px; line-height: 1.5; }
+    .modal-list b { color: var(--teal); font-size: 13px; line-height: 1; }
+    .modal-foot { display: flex; justify-content: flex-end; gap: 8px; margin-top: 22px; }
+
+    @media (max-width: 1030px) {
+      .sidebar { width: 205px; flex-basis: 205px; }
+      main { width: calc(100% - 205px); margin-left: 205px; }
+      .topbar, .page { padding-left: 27px; padding-right: 27px; }
+      .workspace { grid-template-columns: minmax(0, 1.18fr) minmax(260px, .82fr); }
+    }
+    @media (max-width: 760px) {
+      .sidebar { width: 100%; height: 63px; min-height: 0; inset: auto 0 0; flex-direction: row; align-items: center; justify-content: space-around; padding: 7px 8px; border-top: 1px solid var(--line); border-right: 0; background: rgba(240,241,237,.95); backdrop-filter: blur(14px); }
+      .brand, .profile, .nav-label, .rail-bottom { display: none; }
+      .nav-list { display: flex; align-items: center; justify-content: space-around; width: 100%; }
+      .nav-item { width: auto; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding: 5px 16px 4px; font-size: 8px; text-align: center; }
+      main { width: 100%; margin-left: 0; padding-bottom: 63px; }
+      .topbar { height: 62px; padding: 0 17px; }
+      .top-actions .top-btn:first-child { display: none; }
+      .top-actions .top-btn { padding: 0 10px; }
+      .top-actions .top-btn span { display: none; }
+      .top-avatar { display: none; }
+      .page { padding: 27px 17px 48px; }
+      .page-intro { display: block; }
+      .page-intro h1 { font-size: 52px; max-width: 560px; }
+      .intro-side { border-left: 0; border-top: 1px solid var(--line); margin-top: 22px; padding: 16px 0 0; }
+      .workspace { grid-template-columns: 1fr; }
+      .writing-area { min-height: 340px; padding: 18px; }
+      #writing-input { min-height: 280px; font-size: 20px; }
+      .editor-toolbar { align-items: start; }
+      .toolbar-right { flex-wrap: wrap; justify-content: flex-end; }
+      .editor-actions .btn-primary { margin-left: 0; }
+      .issues { max-height: none; }
+      .how-it-works { grid-template-columns: 1fr; }
+      .footer { display: block; line-height: 1.6; }
+      .footer span:last-child { display: block; margin-top: 5px; }
+    }
+    @media (max-width: 430px) {
+      .page-intro h1 { font-size: 45px; }
+      .doc-title { max-width: 95px; }
+      .toolbar-left .tool-btn { display: none; }
+      .writing-meta { display: block; line-height: 1.6; }
+      .writing-meta span:last-child { display: block; margin-top: 4px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" aria-label="Main navigation">
+      <a class="brand" href="#top"><span class="brand-mark">✓</span><span class="brand-name">proofly<small>write clearer</small></span></a>
+      <div class="profile"><div class="avatar">PW</div><div><strong>Personal workspace</strong><span>private · on this device</span></div></div>
+      <div class="nav-label">Workspace</div>
+      <nav class="nav-list"><a class="nav-item active" href="#editor"><span class="nav-icon">✎</span><span>Editor</span></a><a class="nav-item" href="#corrected"><span class="nav-icon">✓</span><span>Corrected text</span></a><a class="nav-item" href="#how"><span class="nav-icon">?</span><span>How it works</span></a></nav>
+      <div class="rail-bottom"><div class="save-note"><strong><i class="save-dot"></i> Autosaved</strong>Your latest draft stays in this browser. Text is not sent anywhere.</div></div>
+    </aside>
+
+    <main>
+      <header class="topbar"><div class="crumbs"><span>Personal workspace</span><span class="slash">/</span><strong>Writing assistant</strong></div><div class="top-actions"><button class="top-btn" data-action="install" hidden>⇩ <span>Install</span></button><button class="top-btn" data-action="about">ⓘ <span>About</span></button><div class="top-avatar">PW</div></div></header>
+      <div class="page" id="top">
+        <section class="page-intro"><div><div class="eyebrow">A calmer way to get the words right</div><h1>Say what you mean.</h1><p>Proofly catches common spelling and grammar slips, then helps you make a clear first draft feel like the one you meant to write.</p><div class="local-badge"><i></i> Local mode · your text stays on this device</div></div><div class="intro-side"><small>Today’s writing</small><strong id="intro-word-count">0 words</strong><span>Start typing or open a text file.</span></div></section>
+
+        <section class="workspace" id="editor">
+          <div class="editor-card">
+            <div class="editor-toolbar"><div class="toolbar-left"><span class="doc-title" id="doc-title">Untitled draft</span><button class="tool-btn" data-action="paste">↳ Paste</button><label class="tool-btn">▧ Open file<input id="file-input" type="file" accept=".txt,.md,.csv,.html,.json,text/plain,text/markdown,text/csv,text/html,application/json" hidden></label></div><div class="toolbar-right"><select class="tone-select" id="tone-select" aria-label="Rewrite style"><option value="clear">Clear style</option><option value="professional">Professional</option><option value="friendly">Friendly</option><option value="concise">Concise</option></select><button class="tool-btn" data-action="clear">Clear</button></div></div>
+            <div class="writing-area"><textarea id="writing-input" spellcheck="true" placeholder="Type or paste your writing here…\n\nTry a note, email, caption, school assignment, or anything you want to make clearer."></textarea><div class="writing-meta"><span><i class="privacy-dot"></i> Draft saves automatically</span><span id="text-stats">0 words · 0 characters</span></div></div>
+            <div class="editor-actions"><button class="btn-secondary" data-action="fix-all">✓ Fix all</button><button class="btn-secondary" data-action="improve">✦ Make it clearer</button><button class="btn-primary" data-action="check">Check writing →</button></div>
+          </div>
+          <aside class="insight-card" id="insights"><div class="insight-header"><div><div class="eyebrow">Your writing check</div><h2>Small fixes,<br>more confidence.</h2></div><div class="score" id="score">—</div></div><div class="issue-summary" id="issue-summary"><strong>Ready when you are.</strong><br>Run a check to see spelling, grammar, and style suggestions.</div><div class="issues" id="issues"><div class="empty-issues"><div><strong>Nothing to fix yet.</strong>Once you add some writing, your suggestions will appear here.</div></div></div><div class="quick-card"><strong>Try the clarity pass</strong><p>Use your selected style to tighten filler phrases and make the sentence easier to read.</p><button data-action="improve">Make it clearer &nbsp;→</button></div></aside>
+        </section>
+
+        <section class="corrected-card" id="corrected"><div class="corrected-head"><div><div class="corrected-label">Clean copy</div><h2>Your corrected text</h2></div><button class="btn-secondary" data-action="copy">Copy text</button></div><div id="corrected-text">Your corrected version will appear here after you check your writing.</div></section>
+
+        <section class="how-it-works" id="how"><div class="how-card"><span>01</span><strong>Write naturally</strong><p>Type or paste a draft. Proofly keeps the original text until you choose a fix.</p></div><div class="how-card"><span>02</span><strong>Review suggestions</strong><p>See spelling, grammar, and clarity notes one at a time—or fix them all.</p></div><div class="how-card"><span>03</span><strong>Take the clean copy</strong><p>Copy the finished version wherever you need it. No account required.</p></div></section>
+        <footer class="footer"><span>Proofly · a private writing assistant</span><span>Free to use · no text leaves this browser</span></footer>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="modal-backdrop" hidden><section class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div class="modal-head"><div><h2 id="modal-title">Proofly stays local</h2><p>A small assistant for clearer first drafts.</p></div><button class="modal-close" data-action="close-modal" aria-label="Close">×</button></div><div class="modal-body"><div class="modal-list"><div><b>✓</b><span><strong>Spelling and common grammar:</strong> suggestions are generated in your browser using local rules.</span></div><div><b>✦</b><span><strong>Clarity pass:</strong> tighten filler phrases and choose a writing style without sending your text to an API.</span></div><div><b>▧</b><span><strong>Documents:</strong> open text-based files such as TXT, Markdown, CSV, HTML, and JSON.</span></div></div></div><div class="modal-foot"><button class="btn-primary" data-action="close-modal">Got it</button></div></section></div>
+  <div class="toast" id="toast" role="status"></div>
+
+  <script>
+    const DEFAULT_TEXT = '';
+    const COMMON_FIXES = {
+      teh: 'the', recieve: 'receive', seperate: 'separate', definately: 'definitely', occured: 'occurred', untill: 'until', accomodate: 'accommodate', embarass: 'embarrass', begining: 'beginning', calender: 'calendar', comming: 'coming', goverment: 'government', independant: 'independent', neccessary: 'necessary', priviledge: 'privilege', recomend: 'recommend', succesful: 'successful', tommorow: 'tomorrow', truely: 'truly', wierd: 'weird', writting: 'writing', alot: 'a lot', dont: "don't", cant: "can't", wont: "won't", isnt: "isn't", doesnt: "doesn't", didnt: "didn't", youre: "you're", your: 'your', ive: "I've", im: "I'm", i: 'I'
+    };
+    const GRAMMAR_FIXES = [
+      { regex: /\bI\s+has\b/gi, replacement: 'I have', label: 'grammar', note: 'Use “have” with “I”.' },
+      { regex: /\bI\s+is\b/gi, replacement: 'I am', label: 'grammar', note: 'Use “am” with “I”.' },
+      { regex: /\b(you|we|they)\s+was\b/gi, replacement: '$1 were', label: 'grammar', note: 'Use “were” with this subject.' },
+      { regex: /\b(he|she|it)\s+were\b/gi, replacement: '$1 was', label: 'grammar', note: 'Use “was” with this subject.' },
+      { regex: /\bthere\s+is\s+(\d+)\s+(people|items|things|reasons)\b/gi, replacement: 'there are $1 $2', label: 'grammar', note: 'Use “are” with a plural noun.' },
+      { regex: /\ba\s+([aeiou][a-z]+)/gi, replacement: 'an $1', label: 'grammar', note: 'Use “an” before a vowel sound.' },
+      { regex: /\b(an)\s+([bcdfghjklmnpqrstvwxyz][a-z]+)/gi, replacement: 'a $2', label: 'grammar', note: 'Use “a” before a consonant sound.' }
+    ];
+    const STYLE_FIXES = [
+      { regex: /\bI just wanted to\b/gi, replacement: 'I wanted to', label: 'style', note: 'Remove a softener for a more direct sentence.' },
+      { regex: /\bI think that\b/gi, replacement: 'I believe', label: 'style', note: 'A more confident opening.' },
+      { regex: /\bin order to\b/gi, replacement: 'to', label: 'style', note: 'Shorter and easier to read.' },
+      { regex: /\bdue to the fact that\b/gi, replacement: 'because', label: 'style', note: 'Use the simpler connector.' },
+      { regex: /\bat this point in time\b/gi, replacement: 'now', label: 'style', note: 'A cleaner way to say this.' },
+      { regex: /\b(each and every)\b/gi, replacement: 'each', label: 'style', note: 'One word is enough.' },
+      { regex: /\b(a lot of)\b/gi, replacement: 'many', label: 'style', note: 'A more concise phrase.' }
+    ];
+    let text = localStorage.getItem('proofly-text') || DEFAULT_TEXT;
+    let issues = [];
+    let installPrompt = null;
+    let toastTimer = null;
+
+    function escapeHTML(value) { return String(value ?? '').replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#039;', '"': '&quot;' }[char])); }
+    function preserveCase(original, replacement) { if (original === original.toUpperCase()) return replacement.toUpperCase(); if (original[0] === original[0].toUpperCase()) return replacement.charAt(0).toUpperCase() + replacement.slice(1); return replacement; }
+    function wordsCount(value) { const matches = value.trim().match(/\b[\w’'-]+\b/g); return matches ? matches.length : 0; }
+    function setText(id, value) { const el = document.getElementById(id); if (el) el.textContent = value; }
+    function showToast(message) { const toast = document.getElementById('toast'); toast.textContent = message; toast.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove('show'), 3000); }
+    function saveDraft() { localStorage.setItem('proofly-text', text); }
+    function scoreFor(issueCount, wordCount) { if (!wordCount) return '—'; return Math.max(0, Math.min(100, Math.round(100 - (issueCount / Math.max(wordCount, 1)) * 100))); }
+    function addRegexIssues(source, regex, replacement, label, note, collection) {
+      const flags = regex.flags.includes('g') ? regex.flags : regex.flags + 'g'; const safeRegex = new RegExp(regex.source, flags); let match;
+      while ((match = safeRegex.exec(source)) !== null) { const original = match[0]; const resolved = original.replace(regex, (...args) => { const matched = args[0]; return replacement.replace(/\$(\d+)/g, (_, number) => args[Number(number)] || '').replace(/\$&/g, matched); }); const fixed = resolved === original ? preserveCase(original, replacement) : resolved; collection.push({ start: match.index, end: match.index + original.length, original, replacement: fixed, kind: label, note }); if (match[0] === '') safeRegex.lastIndex++; }
+    }
+    function analyze(source) {
+      const found = [];
+      const typoRegex = new RegExp('\\b(' + Object.keys(COMMON_FIXES).sort((a,b) => b.length-a.length).map(item => item.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')).join('|') + ')\\b', 'gi');
+      let match;
+      while ((match = typoRegex.exec(source)) !== null) { const original = match[0]; const key = original.toLowerCase(); if (key === 'your' && !/\b(your|youre)\b/i.test(original)) continue; found.push({ start: match.index, end: match.index + original.length, original, replacement: preserveCase(original, COMMON_FIXES[key]), kind: key === 'i' ? 'grammar' : 'spelling', note: key === 'i' ? 'Use a capital “I” for yourself.' : 'Common spelling correction.' }); }
+      GRAMMAR_FIXES.forEach(rule => addRegexIssues(source, rule.regex, rule.replacement, rule.label, rule.note, found));
+      const repeated = / {2,}/g; while ((match = repeated.exec(source)) !== null) found.push({ start: match.index, end: match.index + match[0].length, original: match[0], replacement: ' ', kind: 'style', note: 'Remove the extra spaces.' });
+      const punctuation = /([,.;!?])(?=[A-Za-z])/g; while ((match = punctuation.exec(source)) !== null) found.push({ start: match.index + 1, end: match.index + 1, original: '', replacement: ' ', kind: 'grammar', note: 'Add a space after punctuation.', insert: true });
+      const duplicates = /([.!?])\1+/g; while ((match = duplicates.exec(source)) !== null) found.push({ start: match.index, end: match.index + match[0].length, original: match[0], replacement: match[1], kind: 'grammar', note: 'Use one ending mark.' });
+      const seen = new Set(); return found.filter(issue => { const key = `${issue.start}:${issue.end}:${issue.replacement}`; if (seen.has(key)) return false; seen.add(key); return true; }).sort((a,b) => a.start - b.start);
+    }
+    function applyIssues(list) { let output = text; [...list].sort((a,b) => b.start - a.start).forEach(issue => { output = output.slice(0, issue.start) + issue.replacement + output.slice(issue.end); }); return output; }
+    function checkWriting() { issues = analyze(text); renderIssues(); setText('corrected-text', issues.length ? applyIssues(issues) : (text || 'Your corrected version will appear here after you check your writing.')); showToast(issues.length ? `${issues.length} suggestion${issues.length === 1 ? '' : 's'} found.` : 'Your writing looks clear.'); }
+    function renderIssues() {
+      const list = document.getElementById('issues'); const summary = document.getElementById('issue-summary'); const score = document.getElementById('score'); const count = issues.length; const words = wordsCount(text); score.textContent = scoreFor(count, words);
+      if (!text.trim()) { summary.innerHTML = '<strong>Ready when you are.</strong><br>Run a check to see spelling, grammar, and style suggestions.'; list.innerHTML = '<div class="empty-issues"><div><strong>Nothing to fix yet.</strong>Once you add some writing, your suggestions will appear here.</div></div>'; return; }
+      summary.innerHTML = count ? `<strong>${count} suggestion${count === 1 ? '' : 's'} to review.</strong><br>Choose a fix, or use Fix all to clean the whole draft.` : '<strong>Your draft looks clear.</strong><br>No common spelling or grammar issues found.';
+      list.innerHTML = count ? issues.map((issue, index) => `<div class="issue ${issue.kind}"><div class="issue-top"><span class="issue-kind">${escapeHTML(issue.kind)}</span><button class="issue-fix" data-action="fix-issue" data-index="${index}">Fix →</button></div><div class="issue-text">${issue.original ? `<del>${escapeHTML(issue.original)}</del> → <ins>${escapeHTML(issue.replacement)}</ins>` : `Add <ins>${escapeHTML(issue.replacement)}</ins>`}<br><span style="color:var(--muted);font-size:9px">${escapeHTML(issue.note)}</span></div></div>`).join('') : '<div class="empty-issues"><div><strong>Looks good.</strong>No suggestions from the local writing check.</div></div>';
+    }
+    function renderCounts() { const count = wordsCount(text); setText('intro-word-count', `${count} word${count === 1 ? '' : 's'}`); setText('text-stats', `${count} word${count === 1 ? '' : 's'} · ${text.length} character${text.length === 1 ? '' : 's'}`); }
+    function fixIssue(index) { const issue = issues[index]; if (!issue) return; text = text.slice(0, issue.start) + issue.replacement + text.slice(issue.end); saveDraft(); document.getElementById('writing-input').value = text; issues = analyze(text); renderCounts(); renderIssues(); setText('corrected-text', issues.length ? applyIssues(issues) : text); showToast('Suggestion applied.'); }
+    function fixAll() { if (!text.trim()) { showToast('Add some writing first.'); return; } issues = analyze(text); if (!issues.length) { showToast('Nothing needs fixing.'); return; } text = applyIssues(issues); saveDraft(); document.getElementById('writing-input').value = text; issues = analyze(text); renderCounts(); renderIssues(); setText('corrected-text', text); showToast('All local suggestions applied.'); }
+    function improveText(source, tone) { let result = source; STYLE_FIXES.forEach(rule => { result = result.replace(rule.regex, rule.replacement); }); if (tone === 'professional') { result = result.replace(/\bhey\b/gi, 'Hello').replace(/\bthanks!\b/gi, 'Thank you.').replace(/\bcan you\b/gi, 'Could you'); } if (tone === 'friendly') { result = result.replace(/\bplease find attached\b/gi, 'Here is').replace(/\bI am writing to\b/gi, 'I wanted to'); } if (tone === 'concise') { result = result.replace(/\bvery\s+/gi, '').replace(/\bthat\s+/gi, '').replace(/\s{2,}/g, ' '); } return result; }
+    function improveWriting() { if (!text.trim()) { showToast('Add some writing first.'); return; } const tone = document.getElementById('tone-select').value; text = improveText(text, tone); saveDraft(); document.getElementById('writing-input').value = text; issues = analyze(text); renderCounts(); renderIssues(); setText('corrected-text', issues.length ? applyIssues(issues) : text); showToast('A local clarity pass is ready.'); }
+    function copyText() { const value = document.getElementById('corrected-text').textContent; if (!value || value.startsWith('Your corrected version')) { showToast('Check some writing first.'); return; } if (navigator.clipboard) navigator.clipboard.writeText(value).then(() => showToast('Corrected text copied.')).catch(() => showToast('Select the corrected text to copy it.')); else showToast('Select the corrected text to copy it.'); }
+    async function pasteText() { try { text = await navigator.clipboard.readText(); document.getElementById('writing-input').value = text; saveDraft(); renderCounts(); issues = analyze(text); renderIssues(); showToast('Text pasted.'); } catch (error) { showToast('Use Ctrl+V inside the writing area.'); } }
+    function clearText() { text = ''; saveDraft(); issues = []; document.getElementById('writing-input').value = ''; renderCounts(); renderIssues(); setText('corrected-text', 'Your corrected version will appear here after you check your writing.'); }
+    function loadFile(file) { if (!file) return; const reader = new FileReader(); reader.onload = event => { text = String(event.target.result || ''); document.getElementById('writing-input').value = text; document.getElementById('doc-title').textContent = file.name; saveDraft(); renderCounts(); issues = analyze(text); renderIssues(); setText('corrected-text', text || 'Your corrected version will appear here after you check your writing.'); showToast(`${file.name} opened.`); }; reader.readAsText(file); }
+    function closeModal() { document.getElementById('modal-backdrop').hidden = true; document.body.classList.remove('no-scroll'); }
+    function installApp() { if (installPrompt) { installPrompt.prompt(); installPrompt.userChoice.then(() => { installPrompt = null; document.querySelector('[data-action="install"]').hidden = true; }); } else showToast('Use your browser menu to install Proofly.'); }
+    function handleAction(action, target) { if (action === 'check') checkWriting(); if (action === 'fix-all') fixAll(); if (action === 'fix-issue') fixIssue(Number(target.dataset.index)); if (action === 'improve') improveWriting(); if (action === 'copy') copyText(); if (action === 'paste') pasteText(); if (action === 'clear') clearText(); if (action === 'about') { document.getElementById('modal-backdrop').hidden = false; document.body.classList.add('no-scroll'); } if (action === 'close-modal') closeModal(); if (action === 'install') installApp(); }
+    document.addEventListener('click', event => { const target = event.target.closest('[data-action]'); if (target) { handleAction(target.dataset.action, target); return; } if (event.target.id === 'modal-backdrop') closeModal(); });
+    document.getElementById('writing-input').addEventListener('input', event => { text = event.target.value; saveDraft(); renderCounts(); });
+    document.getElementById('file-input').addEventListener('change', event => loadFile(event.target.files?.[0]));
+    document.addEventListener('keydown', event => { if (event.key === 'Escape' && !document.getElementById('modal-backdrop').hidden) closeModal(); if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') checkWriting(); });
+    window.addEventListener('beforeinstallprompt', event => { event.preventDefault(); installPrompt = event; const button = document.querySelector('[data-action="install"]'); if (button) button.hidden = false; });
+    if ('serviceWorker' in navigator && location.protocol !== 'file:') window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+    document.getElementById('writing-input').value = text; renderCounts(); renderIssues();
+  </script>
+</body>
+</html>
